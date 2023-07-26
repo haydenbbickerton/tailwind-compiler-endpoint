@@ -16,8 +16,15 @@
   status = 200 # ok code
   force = true # ensure to always redirect
 
+[[redirects]]
+    from = "/css/:color"
+    to = "/.netlify/builders/color"
+    status = 200
+    force = true
+
 [functions]
   node_bundler = "esbuild"
+  included_files = ["bin/*"]
 
 [[plugins]]
   package = "netlify-plugin-cypress"
