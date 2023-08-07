@@ -19,10 +19,3 @@
 [functions]
   node_bundler = "esbuild"
   included_files = ["bin/tailwindcss-linux-x64"]
-
-[[plugins]]
-  package = "netlify-plugin-cypress"
-  [plugins.inputs]
-    enable = false
-  [plugins.inputs.postBuild]
-    enable = true

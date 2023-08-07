@@ -20,7 +20,7 @@ const dis = [binaryPath]
 //   win32: `tailwindcss-windows-${process.arch}`,
 // };
 
-export const handler = async (event, context) => {
+export async function handler(event, context) {
   try {
     const postData = JSON.parse(event.body);
 
