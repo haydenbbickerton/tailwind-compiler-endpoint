@@ -8,28 +8,23 @@ const binaryPath =
   path.join(__dirname, '..', '..', 'bin', 'tailwindcss-linux-x64')
 
 const dis = [binaryPath]
-// import tailwindcss from 'tailwindcss';
-// import processTailwindFeatures from 'tailwindcss/src/processTailwindFeatures.js';
-// const theme = require('tailwindcss/defaultTheme');
-// const build = require('tailwindcss/lib/cli/build/index.js');
-// require('tailwindcss/lib/cli');
-
-// const platformMap = {
-//   darwin: `tailwindcss-macos-${process.arch}`,
-//   linux: `tailwindcss-linux-${process.arch}`,
-//   win32: `tailwindcss-windows-${process.arch}`,
-// };
+const headers = {
+  "Access-Control-Allow-Origin": "*",
+  'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+  "Access-Control-Allow-Methods": "POST, GET, PUT, DELETE",
+  'Content-Type': 'application/json',
+};
 
 export async function handler(event, context) {
-  try {
-
-    const headers = {
-      "Access-Control-Allow-Origin": "*",
-      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Methods': '*',
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 204,
+      headers,
+      body: ""
     };
+  }
 
+  try {
     const postData = JSON.parse(event.body)
 
     const css = postData.css
@@ -85,7 +80,7 @@ export async function handler(event, context) {
     return {
       statusCode: 500,
       headers,
-      body: error.toString(),
-    }
+      body: JSON.stringify({ message: error.toString() }), // better JSON format for errors
+    };
   }
 }
