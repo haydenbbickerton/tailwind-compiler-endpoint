@@ -22,6 +22,14 @@ const dis = [binaryPath]
 
 export async function handler(event, context) {
   try {
+
+    const headers = {
+      "Access-Control-Allow-Origin": "*",
+      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Methods': '*',
+    };
+
     const postData = JSON.parse(event.body)
 
     const css = postData.css
@@ -70,17 +78,13 @@ export async function handler(event, context) {
 
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*', // Allow from anywhere
-      },
+      headers,
       body: JSON.stringify({ css: generatedCss.toString() }),
     }
   } catch (error) {
     return {
       statusCode: 500,
-      headers: {
-        'Access-Control-Allow-Origin': '*', // Allow from anywhere
-      },
+      headers,
       body: error.toString(),
     }
   }
