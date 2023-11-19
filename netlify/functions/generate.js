@@ -4,8 +4,14 @@ import path from 'path'
 import { execa } from 'execa'
 import fs from 'fs-extra'
 
-const __dirname = new URL('./', import.meta.url).pathname;
-const binDir = path.join(__dirname, '..', '..', 'bin')
+let currentDir;
+try {
+  currentDir = new URL('./', import.meta.url).pathname;
+} catch (e) {
+  currentDir = __dirname
+}
+
+const binDir = path.join(currentDir, '..', '..', 'bin')
 /**
  * This is a workaround for a "bug" in Netlify's build system (idk what causes it, but this fixes it)
  * 
