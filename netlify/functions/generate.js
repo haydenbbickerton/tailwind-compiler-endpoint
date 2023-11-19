@@ -5,6 +5,13 @@ import { execa } from 'execa'
 import fs from 'fs-extra'
 
 /**
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
+const __dirname = path.dirname(__filename); // get the name of the directory
+*/
+
+/**
  * This is a workaround for a "bug" in Netlify's build system (idk what causes it, but this fixes it)
  * 
  * I THINK this is because netlify only includes files actually used, to avoid bloating the function bundle (ie with node_modules)
@@ -45,10 +52,10 @@ export async function handler(event, context) {
       body: ""
     };
   }
-
+  
   try {
     const postData = JSON.parse(event.body)
-
+    //console.log(postData)
     const css = postData.css
     const content = postData.content
     const theme = postData.theme || {}
@@ -75,12 +82,21 @@ export async function handler(event, context) {
     // we write: `plugins: [ require('@tailwindcss/forms'), require('@tailwindcss/typography')]
     const pluginsString = plugins.map((plugin) => `require('${plugin}')`).join(',')
 
+    
+    const config = {
+      content: [contentFilePath],
+      theme,
+      // plugins: [pluginsString]
+  }
+
+    if (isTrue(options.disablePreflight)) {
+      config.corePlugins = { preflight: false }
+    }
+
     const configContent = `
         module.exports = {
-            content: ["${contentFilePath}"],
-            ${isTrue(options.disablePreflight) ? 'corePlugins: {preflight: false}' : ''},
-            theme: { ${castToString(theme)} },
-            plugins: [${pluginsString}]
+          plugins: [${pluginsString}],
+          ...${JSON.stringify(config)}
         };
     `
     const configFilePath = path.join(tempDir, 'config.js')
@@ -93,6 +109,7 @@ export async function handler(event, context) {
 
     const minifyFlag = isTrue(options.disableMinify) ? '' : '--minify'
     const autoprefixerFlag = isTrue(options.disableAutoprefixer) ? '--no-autoprefixer' : ''
+
     const { stdout: generatedCss } = await execa(
       binaryPath,
       ['--input', inputCssFilePath, '--config', configFilePath, minifyFlag, autoprefixerFlag]
@@ -114,6 +131,8 @@ export async function handler(event, context) {
       body: output,
     }
   } catch (error) {
+
+    console.log(error)
     return {
       statusCode: 500,
       headers,
