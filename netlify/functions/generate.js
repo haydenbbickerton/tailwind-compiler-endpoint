@@ -3,11 +3,9 @@ import os from 'os'
 import path from 'path'
 import { execa } from 'execa'
 import fs from 'fs-extra'
-import { getGlobals } from 'common-es'
-const { __dirname } = getGlobals(import.meta.url)
 
+const __dirname = new URL('./', import.meta.url).pathname;
 const binDir = path.join(__dirname, '..', '..', 'bin')
-
 /**
  * This is a workaround for a "bug" in Netlify's build system (idk what causes it, but this fixes it)
  * 
