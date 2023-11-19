@@ -1,31 +1,27 @@
-const fastify = require("fastify")({
+import {fastify} from 'fastify';
+import formbody from '@fastify/formbody'
+import { handler } from "./netlify/functions/generate.js";
+
+const server = fastify({
   // Set this to true for detailed logging:
-  logger: false,
+  logger: true,
 });
 
-fastify.register(require("@fastify/formbody"));
+server.register(formbody);
 
-const buildCss = require("./buildcss.js");
-
-fastify.post("/buildCss", async (request, reply) => {
+server.post("/*", async (request, reply) => {
   
-  
-  
-  
-  
-  
-  
-  let { config, content } = request.body;
   try {
-    const css = await buildCss.buildCss({ config, content });
-    reply.send({ css });
+    const output = await handler({ body: JSON.stringify(request.body)}, {});
+    reply.send(output);
   } catch (err) {
-    reply.status(500).send({ error: err.message, buildCss });
+    console.log("err", err);
+    reply.status(500).send({ error: err.message, handler });
   }
 });
 
 // Run the server and report out to the logs
-fastify.listen(
+server.listen(
   { port: process.env.PORT, host: "0.0.0.0" },
   function (err, address) {
     if (err) {
