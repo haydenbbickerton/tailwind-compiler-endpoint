@@ -58,8 +58,10 @@ export async function handler(event, context) {
       ...(postData.options || {})
     }
 
-    const tempDir = os.tmpdir()
-
+    // Create a temp folder to process files for this request
+    const tempDir = path.join(os.tmpdir(), Math.random().toString(20).substr(2, 6))
+    fs.ensureDirSync(tempDir)
+    
     const inputCssFilePath = path.join(tempDir, 'input.css')
     fs.writeFileSync(inputCssFilePath, castToString(css))
 
@@ -96,6 +98,8 @@ export async function handler(event, context) {
       ['--input', inputCssFilePath, '--config', configFilePath, minifyFlag, autoprefixerFlag]
     )
 
+    const output = JSON.stringify({ css: generatedCss.toString() })
+
     // const { stdout: generatedCss } = await execa(binaryPath, ['--input', inputFilePath, '--config', configFilePath]);
 
     // cleanup our working temp folder
@@ -107,7 +111,7 @@ export async function handler(event, context) {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ css: generatedCss.toString() }),
+      body: output,
     }
   } catch (error) {
     return {
