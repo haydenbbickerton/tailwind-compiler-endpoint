@@ -3,14 +3,10 @@ import os from 'os'
 import path from 'path'
 import { execa } from 'execa'
 import fs from 'fs-extra'
+import { getGlobals } from 'common-es'
+const { __dirname } = getGlobals(import.meta.url)
 
-/* 
-// Uncomment for local testing with the server.js file 
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
-const __dirname = path.dirname(__filename); // get the name of the directory
-*/
+const binDir = path.join(__dirname, '..', '..', 'bin')
 
 /**
  * This is a workaround for a "bug" in Netlify's build system (idk what causes it, but this fixes it)
@@ -21,10 +17,8 @@ const __dirname = path.dirname(__filename); // get the name of the directory
  * So my netlify.toml file has `included_files = ["bin/3.3.5/tailwindcss-linux-x64"]`, and here
  * we will reference that path in our top-level scope to ensure it gets included in the build
  */
-const binaryPath =
-  process.env.TAILWIND_BINARY_PATH ??
-  path.join(__dirname, '..', '..', 'bin', '3.3.5', 'tailwindcss-linux-x64')
-const workaroundVar = [binaryPath]
+const tailwindBin = process.env.TAILWIND_BINARY_PATH ?? path.join(binDir, '3.3.5', 'tailwindcss-linux-x64')
+const workaroundVar = [tailwindBin]
 console.log(`tailwind binary path: ${workaroundVar}`);
 
 
@@ -76,19 +70,15 @@ export async function handler(event, context) {
     const contentFilePath = path.join(tempDir, 'content.html')
     fs.writeFileSync(contentFilePath, castToString(content))
 
-
-
     // For each entry in the posted `plugins` field, write a require statement
     // so if they send `plugins: ['@tailwindcss/forms', '@tailwindcss/typography']`
     // we write: `plugins: [ require('@tailwindcss/forms'), require('@tailwindcss/typography')]
     const pluginsString = plugins.map((plugin) => `require('${plugin}')`).join(',')
 
-    
     const config = {
       content: [contentFilePath],
-      theme,
-      // plugins: [pluginsString]
-  }
+      theme
+    }
 
     if (isTrue(options.disablePreflight)) {
       config.corePlugins = { preflight: false }
@@ -103,28 +93,18 @@ export async function handler(event, context) {
     const configFilePath = path.join(tempDir, 'config.js')
     fs.writeFileSync(configFilePath, configContent)
 
-    const binaryPath =
-      process.env.TAILWIND_BINARY_PATH ??
-      path.join(__dirname, '..', '..', 'bin', options.tailwindVersion, 'tailwindcss-linux-x64')
-
+    const binaryPath = process.env.TAILWIND_BINARY_PATH ?? path.join(binDir, options.tailwindVersion, 'tailwindcss-linux-x64')
 
     const minifyFlag = isTrue(options.disableMinify) ? '' : '--minify'
     const autoprefixerFlag = isTrue(options.disableAutoprefixer) ? '--no-autoprefixer' : ''
 
     const { stdout: generatedCss } = await execa(
-      binaryPath,
-      ['--input', inputCssFilePath, '--config', configFilePath, minifyFlag, autoprefixerFlag]
+      binaryPath, ['--input', inputCssFilePath, '--config', configFilePath, minifyFlag, autoprefixerFlag]
     )
-
     const output = JSON.stringify({ css: generatedCss.toString() })
-
-    // const { stdout: generatedCss } = await execa(binaryPath, ['--input', inputFilePath, '--config', configFilePath]);
 
     // cleanup our working temp folder
     fs.removeSync(tempDir)
-    // fs.removeSync(inputCssFilePath);
-    // fs.removeSync(contentFilePath)
-    // fs.removeSync(configFilePath)
 
     return {
       statusCode: 200,
