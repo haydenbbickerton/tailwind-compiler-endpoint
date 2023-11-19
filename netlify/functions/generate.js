@@ -4,14 +4,16 @@ import path from 'path'
 import { execa } from 'execa'
 import fs from 'fs-extra'
 
+// Netlify can run this function as both esm and cjs, so handle relative path for both
+// https://docs.netlify.com/functions/get-started/?fn-language=js#module-format-2
 let currentDir;
 try {
   currentDir = new URL('./', import.meta.url).pathname;
 } catch (e) {
   currentDir = __dirname
 }
-
 const binDir = path.join(currentDir, '..', '..', 'bin')
+
 /**
  * This is a workaround for a "bug" in Netlify's build system (idk what causes it, but this fixes it)
  * 
