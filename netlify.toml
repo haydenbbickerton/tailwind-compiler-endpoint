@@ -10,6 +10,12 @@
 ## https://docs.netlify.com/routing/redirects/#syntax-for-the-netlify-configuration-file
 ## https://docs.netlify.com/routing/redirects/redirect-options/
 
+# Rewrite a path
+[[redirects]]
+  from = "/api" # default api path alias
+  to = "/.netlify/functions/generate"
+  status = 200
+
 [[redirects]]
   from = "/api/*" # simplify all calls to serverless functions
   to = "/.netlify/functions/:splat" # all function calls will go to this path
