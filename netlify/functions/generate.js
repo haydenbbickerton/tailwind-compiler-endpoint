@@ -3,6 +3,23 @@ import os from 'os'
 import path from 'path'
 import { execa } from 'execa'
 import fs from 'fs-extra'
+
+/**
+ * This is a workaround for a "bug" in Netlify's build system (idk what causes it, but this fixes it)
+ * 
+ * I THINK this is because netlify only includes files actually used, to avoid bloating the function bundle (ie with node_modules)
+ * And since the our binary is only executed on POST, it's not used during build time.
+ * 
+ * So my netlify.toml file has `included_files = ["bin/3.3.5/tailwindcss-linux-x64"]`, and here
+ * we will reference that path in our top-level scope to ensure it gets included in the build
+ */
+const binaryPath =
+  process.env.TAILWIND_BINARY_PATH ??
+  path.join(__dirname, '..', '..', 'bin', '3.3.5', 'tailwindcss-linux-x64')
+const workaroundVar = [binaryPath]
+console.log(`tailwind binary path: ${workaroundVar}`);
+
+
 const headers = {
   "Access-Control-Allow-Origin": "*",
   'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
